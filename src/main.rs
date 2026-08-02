@@ -84,10 +84,7 @@ fn run() -> Result<()> {
 
     let store = Store::locate(cli.store.as_deref())?;
 
-    // Bare `rspass` lists the store, like bare `pass`.
-    let command = cli.command.unwrap_or(Commands::Ls { subfolder: None });
-
-    match command {
+    match cli.command {
         Commands::Complete { shells } => {
             for shell in shells {
                 cli::print_completions(shell);

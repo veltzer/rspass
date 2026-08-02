@@ -5,6 +5,7 @@ use clap_complete::{generate, Shell};
 #[command(name = "rspass")]
 #[command(version = concat!(env!("CARGO_PKG_VERSION")))]
 #[command(about = "Rust password manager - a clone of pass(1), the standard unix password store", long_about = None)]
+#[command(arg_required_else_help = true)]
 pub struct Cli {
     /// Show extra detail (gpg commands, git commits, resolved paths)
     #[arg(short, long, global = true)]
@@ -25,7 +26,7 @@ pub struct Cli {
     pub color: ColorMode,
 
     #[command(subcommand)]
-    pub command: Option<Commands>,
+    pub command: Commands,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, clap::ValueEnum)]
@@ -134,7 +135,7 @@ pub enum Commands {
         /// Name of the password to insert
         pass_name: String,
     },
-    /// List passwords as a tree (requires store) [default]
+    /// List passwords as a tree (requires store)
     Ls {
         /// Subfolder to list
         subfolder: Option<String>,

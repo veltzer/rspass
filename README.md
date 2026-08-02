@@ -17,7 +17,7 @@ created by pass and rspass are interchangeable.
 $ rspass init mark.veltzer@gmail.com     # create ~/.password-store
 $ rspass generate web/github 32          # generate + store a password
 $ rspass insert mail/proton              # prompt (hidden, twice) and store
-$ rspass                                 # tree listing, like bare `pass`
+$ rspass ls                              # tree listing of the store
 $ rspass show web/github                 # decrypt and print
 $ rspass show -c web/github              # copy to clipboard, clear in 45s
 $ rspass edit web/github                 # $EDITOR on a /dev/shm temp file

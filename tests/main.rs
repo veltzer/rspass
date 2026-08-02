@@ -54,6 +54,17 @@ fn version_prints_build_info() {
 }
 
 #[test]
+fn bare_invocation_shows_subcommands() {
+    // With no arguments clap treats it as a usage error: the subcommand
+    // list goes to stderr and the exit code is non-zero.
+    let assert = Command::cargo_bin("rspass").unwrap().assert().failure();
+    let out = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
+    for sub in ["init", "insert", "show", "generate", "ls"] {
+        assert!(out.contains(sub), "bare rspass output is missing subcommand {sub}");
+    }
+}
+
+#[test]
 fn help_lists_all_subcommands() {
     let assert = Command::cargo_bin("rspass").unwrap().arg("--help").assert().success();
     let out = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
@@ -124,8 +135,9 @@ fn init_insert_show_roundtrip() {
         .success()
         .stdout("hunter2\n");
 
-    // Bare rspass == ls: the tree shows the entry without its .gpg suffix.
+    // ls: the tree shows the entry without its .gpg suffix.
     rspass(store.path(), gpg)
+        .arg("ls")
         .assert()
         .success()
         .stdout(predicate::str::contains("Password Store").and(predicate::str::contains("example")));
