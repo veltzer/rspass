@@ -1,6 +1,6 @@
 [package]
 name = "rspass"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 authors = ["Mark Veltzer <mark.veltzer@gmail.com>"]
 description = "Rust based clone of pass(1), the standard unix password manager"
