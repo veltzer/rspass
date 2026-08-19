@@ -25,8 +25,27 @@ jobs:
       # rspass shells out to gpg for all encryption, exactly like pass(1).
       # ubuntu-latest ships gnupg, but install explicitly so a runner image
       # change fails here with a clear message instead of inside the tests.
+      #
+      # Acquire options because apt does not fail fast on a bad mirror. The
+      # runner's /etc/apt/apt-mirrors.txt lists azure.archive.ubuntu.com first,
+      # and that host goes unreachable intermittently. apt's defaults turn that
+      # into a hang rather than an error: Acquire::Retries is 0, so there is no
+      # second attempt, and the http timeout is 120s per connection, which the
+      # mirrorlist multiplies across every suite and component. Timeout=15 caps
+      # how long a dead mirror holds each connection and Retries=3 lets apt fall
+      # through to archive.ubuntu.com. veltzer.github.io lost a build to exactly
+      # this on 2026-08-19.
+      #
+      # timeout-minutes scopes the failure to this step rather than letting it
+      # eat the job's 60-minute budget and time out somewhere less obvious.
       - name: Install GnuPG
-        run: sudo apt-get update && sudo apt-get install -y gnupg
+        timeout-minutes: 5
+        env:
+          APT_OPTS: >-
+            -o Acquire::Retries=3
+            -o Acquire::http::Timeout=15
+            -o Acquire::https::Timeout=15
+        run: sudo apt-get $APT_OPTS update && sudo apt-get $APT_OPTS install -y gnupg
 
       - name: Build
         run: cargo build
