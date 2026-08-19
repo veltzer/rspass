@@ -35,11 +35,7 @@ jobs:
       # how long a dead mirror holds each connection and Retries=3 lets apt fall
       # through to archive.ubuntu.com. veltzer.github.io lost a build to exactly
       # this on 2026-08-19.
-      #
-      # timeout-minutes scopes the failure to this step rather than letting it
-      # eat the job's 60-minute budget and time out somewhere less obvious.
       - name: Install GnuPG
-        timeout-minutes: 5
         env:
           APT_OPTS: >-
             -o Acquire::Retries=3
