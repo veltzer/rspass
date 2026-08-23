@@ -1,9 +1,10 @@
 #!/bin/bash
-# Install the external tools this repo's tests shell out to. The canonical
-# ci.yml runs this in every repo right after `cargo build`; a repo whose
-# tests need no external tools keeps this script as an explicit no-op.
-# Keep it strict: a tool that fails to install must fail the build here,
-# not surface later as a confusing test failure.
+# Install the system libraries this repo's build links against and the
+# external tools its tests shell out to. The canonical ci.yml runs this in
+# every repo before `cargo build`; a repo that needs neither keeps this
+# script as an explicit no-op. Keep it strict: anything that fails to
+# install must fail the build here, not surface later as a confusing
+# build or test failure.
 set -euo pipefail
 
 # rspass shells out to gpg for all encryption, exactly like pass(1).
