@@ -5,10 +5,7 @@
 #   cargo release major    - bump major (0.1.0 -> 1.0.0)
 # Add --execute to actually run (dry-run by default)
 
-# Commit and tag format. The "v" prefix matters: .github/workflows/release.yml
-# triggers on tags matching "v*". cargo-release's default tag name is
-# "{{prefix}}v{{version}}", so it already has the "v" — do NOT set
-# tag-prefix = "v" or tags come out as "vv0.1.1".
+# Commit and tag format
 tag-message = "release v{{version}}"
 tag-prefix = ""
 
