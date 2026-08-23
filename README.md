@@ -60,5 +60,5 @@ $ cargo test          # includes end-to-end tests against a throwaway GPG key
 ```
 
 Releases are cut by pushing a `v*` tag (see `release.toml` /
-`cargo release`); `.github/workflows/release.yml` builds Linux and macOS
+`cargo release`); `.github/workflows/ci.yml` builds Linux and macOS
 binaries for x86_64 and aarch64 and attaches them to a GitHub release.

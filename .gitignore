@@ -16,3 +16,6 @@
 
 # RustRover
 /.idea/
+
+# mdBook build output
+/docs/book/

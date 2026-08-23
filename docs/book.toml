@@ -1,0 +1,14 @@
+[book]
+authors = ["Mark Veltzer <mark.veltzer@gmail.com>"]
+language = "en"
+src = "src"
+title = "rspass - Rust based clone of pass(1), the standard unix password manager"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "rust"
+preferred-dark-theme = "ayu"
+git-repository-url = "https://github.com/veltzer/rspass"
+edit-url-template = "https://github.com/veltzer/rspass/edit/master/docs/{path}"
