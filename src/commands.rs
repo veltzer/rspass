@@ -30,14 +30,22 @@ fn confirm(question: &str) -> Result<bool> {
     eprint!("{question} [y/N] ");
     std::io::stderr().flush().ok();
     let mut answer = String::new();
-    stdin.lock().read_line(&mut answer).context("failed to read answer")?;
+    stdin
+        .lock()
+        .read_line(&mut answer)
+        .context("failed to read answer")?;
     Ok(matches!(answer.trim(), "y" | "Y" | "yes" | "Yes"))
 }
 
 /// Refuse to clobber an existing entry unless --force was given or the user
 /// confirms interactively.
 fn check_overwrite(path: &Path, name: &str, force: bool) -> Result<()> {
-    if path.exists() && !force && !confirm(&format!("An entry already exists for {name}. Overwrite it?"))? {
+    if path.exists()
+        && !force
+        && !confirm(&format!(
+            "An entry already exists for {name}. Overwrite it?"
+        ))?
+    {
         bail!("not overwriting {name}");
     }
     Ok(())
@@ -84,7 +92,11 @@ pub fn init(store: &Store, path: Option<&str>, gpg_ids: &[String]) -> Result<()>
 
     gitops::commit(
         store.root(),
-        &format!("Set GPG ids to {} ({}).", gpg_ids.join(", "), path.unwrap_or("store root")),
+        &format!(
+            "Set GPG ids to {} ({}).",
+            gpg_ids.join(", "),
+            path.unwrap_or("store root")
+        ),
     )
 }
 
@@ -114,7 +126,9 @@ pub fn show(store: &Store, clip: Option<usize>, pass_name: &str) -> Result<()> {
                 bail!("line {line_no} of {pass_name} is empty");
             }
             let seconds = crate::clipboard::copy(line)?;
-            say(&format!("Copied {pass_name} to clipboard. Will clear in {seconds} seconds."));
+            say(&format!(
+                "Copied {pass_name} to clipboard. Will clear in {seconds} seconds."
+            ));
         }
     }
     Ok(())
@@ -148,12 +162,20 @@ pub fn find(store: &Store, terms: &[String]) -> Result<()> {
 
 pub fn grep(store: &Store, search: &str, ignore_case: bool) -> Result<()> {
     store.require_initialized()?;
-    let needle = if ignore_case { search.to_lowercase() } else { search.to_owned() };
+    let needle = if ignore_case {
+        search.to_lowercase()
+    } else {
+        search.to_owned()
+    };
     for name in store.list_entries(None)? {
         let plaintext = gpg::decrypt(&store.entry_path(&name)?)?;
         let mut header_printed = false;
         for line in plaintext.lines() {
-            let hay = if ignore_case { line.to_lowercase() } else { line.to_owned() };
+            let hay = if ignore_case {
+                line.to_lowercase()
+            } else {
+                line.to_owned()
+            };
             if hay.contains(&needle) {
                 if !header_printed {
                     println!("{}:", color::bold_blue(&name));
@@ -186,9 +208,13 @@ pub fn insert(
     let body = if let Some(tpl_name) = tpl {
         template::render(store, tpl_name, vars)?
     } else if multiline {
-        say(&format!("Enter contents of {pass_name} and press Ctrl+D when finished:"));
+        say(&format!(
+            "Enter contents of {pass_name} and press Ctrl+D when finished:"
+        ));
         let mut buf = String::new();
-        std::io::stdin().read_to_string(&mut buf).context("failed to read stdin")?;
+        std::io::stdin()
+            .read_to_string(&mut buf)
+            .context("failed to read stdin")?;
         buf
     } else if echo || !std::io::stdin().is_terminal() {
         // Non-tty stdin (piped input) reads one line, like `pass insert -e`.
@@ -197,7 +223,10 @@ pub fn insert(
             std::io::stderr().flush().ok();
         }
         let mut line = String::new();
-        std::io::stdin().lock().read_line(&mut line).context("failed to read password")?;
+        std::io::stdin()
+            .lock()
+            .read_line(&mut line)
+            .context("failed to read password")?;
         format!("{}\n", line.trim_end_matches('\n'))
     } else {
         let first = rpassword::prompt_password(format!("Enter password for {pass_name}: "))
@@ -211,9 +240,15 @@ pub fn insert(
     };
 
     gpg::encrypt(&body, &entry, &store.gpg_ids_for(pass_name)?)?;
-    gitops::commit(store.root(), &format!("Add given password for {pass_name} to store."))?;
+    gitops::commit(
+        store.root(),
+        &format!("Add given password for {pass_name} to store."),
+    )?;
     if tpl.is_some() {
-        say(&format!("Created {pass_name} from template {}.", tpl.unwrap_or_default()));
+        say(&format!(
+            "Created {pass_name} from template {}.",
+            tpl.unwrap_or_default()
+        ));
     }
     Ok(())
 }
@@ -221,17 +256,25 @@ pub fn insert(
 pub fn edit(store: &Store, pass_name: &str) -> Result<()> {
     store.require_initialized()?;
     let entry = store.entry_path(pass_name)?;
-    let existing = if entry.is_file() { Some(gpg::decrypt(&entry)?) } else { None };
+    let existing = if entry.is_file() {
+        Some(gpg::decrypt(&entry)?)
+    } else {
+        None
+    };
 
     // Prefer /dev/shm so plaintext never touches a disk-backed filesystem.
     let tmp_dir = if Path::new("/dev/shm").is_dir() {
-        tempfile::Builder::new().prefix("rspass-edit").tempdir_in("/dev/shm")
+        tempfile::Builder::new()
+            .prefix("rspass-edit")
+            .tempdir_in("/dev/shm")
     } else {
         tempfile::Builder::new().prefix("rspass-edit").tempdir()
     }
     .context("failed to create temporary directory")?;
     let tmp_file = tmp_dir.path().join(
-        Path::new(pass_name).file_name().context("invalid pass name")?,
+        Path::new(pass_name)
+            .file_name()
+            .context("invalid pass name")?,
     );
     fs::write(&tmp_file, existing.as_deref().unwrap_or(""))
         .context("failed to write temporary file")?;
@@ -260,7 +303,10 @@ pub fn edit(store: &Store, pass_name: &str) -> Result<()> {
     }
     gpg::encrypt(&new_content, &entry, &store.gpg_ids_for(pass_name)?)?;
     let action = if existing.is_some() { "Edit" } else { "Add" };
-    gitops::commit(store.root(), &format!("{action} password for {pass_name} using {editor}."))
+    gitops::commit(
+        store.root(),
+        &format!("{action} password for {pass_name} using {editor}."),
+    )
 }
 
 pub fn generate(
@@ -299,13 +345,21 @@ pub fn generate(
     gpg::encrypt(&body, &entry, &store.gpg_ids_for(pass_name)?)?;
 
     let verb = if in_place { "Replace" } else { "Add" };
-    gitops::commit(store.root(), &format!("{verb} generated password for {pass_name}."))?;
+    gitops::commit(
+        store.root(),
+        &format!("{verb} generated password for {pass_name}."),
+    )?;
 
     if clip {
         let seconds = crate::clipboard::copy(&password)?;
-        say(&format!("Copied {pass_name} to clipboard. Will clear in {seconds} seconds."));
+        say(&format!(
+            "Copied {pass_name} to clipboard. Will clear in {seconds} seconds."
+        ));
     } else {
-        say(&format!("The generated password for {} is:", color::bold(pass_name)));
+        say(&format!(
+            "The generated password for {} is:",
+            color::bold(pass_name)
+        ));
         println!("{}", color::yellow(&password));
     }
     Ok(())
@@ -331,13 +385,19 @@ pub fn rm(store: &Store, pass_name: &str, recursive: bool, force: bool) -> Resul
         bail!("{pass_name} is not in the password store");
     };
 
-    if !force && !confirm(&format!("Are you sure you would like to delete {pass_name}?"))? {
+    if !force
+        && !confirm(&format!(
+            "Are you sure you would like to delete {pass_name}?"
+        ))?
+    {
         bail!("not deleting {pass_name}");
     }
     if is_dir {
-        fs::remove_dir_all(&target).with_context(|| format!("failed to remove {}", target.display()))?;
+        fs::remove_dir_all(&target)
+            .with_context(|| format!("failed to remove {}", target.display()))?;
     } else {
-        fs::remove_file(&target).with_context(|| format!("failed to remove {}", target.display()))?;
+        fs::remove_file(&target)
+            .with_context(|| format!("failed to remove {}", target.display()))?;
         remove_empty_parents(target.parent(), store.root());
     }
     say(&format!("Removed {pass_name}."));
@@ -366,7 +426,13 @@ pub fn mv_or_cp(store: &Store, old: &str, new: &str, force: bool, is_move: bool)
     if old_entry.is_file() {
         // Destination ending in '/' targets a directory, like mv(1).
         let new_name = if new.ends_with('/') {
-            format!("{new}{}", Path::new(old).file_name().unwrap_or_default().to_string_lossy())
+            format!(
+                "{new}{}",
+                Path::new(old)
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+            )
         } else {
             new.to_owned()
         };
@@ -427,8 +493,9 @@ fn copy_dir(src: &Path, dst: &Path) -> Result<()> {
         if from.is_dir() {
             copy_dir(&from, &to)?;
         } else {
-            fs::copy(&from, &to)
-                .with_context(|| format!("failed to copy {} to {}", from.display(), to.display()))?;
+            fs::copy(&from, &to).with_context(|| {
+                format!("failed to copy {} to {}", from.display(), to.display())
+            })?;
         }
     }
     Ok(())

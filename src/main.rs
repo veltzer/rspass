@@ -2,7 +2,6 @@
 #![warn(clippy::pedantic)]
 #![warn(clippy::nursery)]
 #![deny(warnings)]
-
 // The pedantic/nursery allow list, copied from rsconstruct's policy: every
 // entry is a decision, not a backlog item. The bar for adding here is:
 // clippy's preferred form is not clearly better, AND the lint fires broadly
@@ -11,25 +10,20 @@
 // Numeric casts on human-facing values (lengths, line numbers) where the
 // range is known-small and a lossy cast is the intent.
 #![allow(clippy::cast_possible_truncation)]
-
 // Match arms are kept separate when they mean different things, even where
 // they currently share a body.
 #![allow(clippy::match_same_arms)]
-
 // Suggests `map_or`/`map_or_else`, which is less readable than `if let`
 // once the branches are more than an expression each.
 #![allow(clippy::option_if_let_else)]
-
 // Fires on the CLI dispatch match in main.rs and the per-command handlers.
 // These are flat dispatch tables; splitting them produces indirection
 // without reducing the amount to read.
 #![allow(clippy::too_many_lines)]
-
 // CLI argument structs are flag bags by nature — clap derives one bool per
 // `--flag`. Grouping them into sub-structs to satisfy a 3-bool limit would
 // obscure the one-field-per-option mapping that makes them readable.
 #![allow(clippy::struct_excessive_bools)]
-
 // Command handlers take many primitives because each maps 1:1 to a CLI flag.
 #![allow(clippy::fn_params_excessive_bools)]
 
@@ -90,7 +84,11 @@ fn run() -> Result<()> {
                 cli::print_completions(shell);
             }
         }
-        Commands::Cp { force, old_path, new_path } => {
+        Commands::Cp {
+            force,
+            old_path,
+            new_path,
+        } => {
             commands::mv_or_cp(&store, &old_path, &new_path, force, false)?;
         }
         Commands::Edit { pass_name } => {
@@ -99,28 +97,63 @@ fn run() -> Result<()> {
         Commands::Find { pass_names } => {
             commands::find(&store, &pass_names)?;
         }
-        Commands::Generate { no_symbols, clip, in_place, force, pass_name, length } => {
-            commands::generate(&store, &pass_name, length, no_symbols, clip, in_place, force)?;
+        Commands::Generate {
+            no_symbols,
+            clip,
+            in_place,
+            force,
+            pass_name,
+            length,
+        } => {
+            commands::generate(
+                &store, &pass_name, length, no_symbols, clip, in_place, force,
+            )?;
         }
         Commands::Git { args } => {
             gitops::passthrough(store.root(), &args)?;
         }
-        Commands::Grep { ignore_case, search_string } => {
+        Commands::Grep {
+            ignore_case,
+            search_string,
+        } => {
             commands::grep(&store, &search_string, ignore_case)?;
         }
         Commands::Init { path, gpg_ids } => {
             commands::init(&store, path.as_deref(), &gpg_ids)?;
         }
-        Commands::Insert { echo, multiline, force, template, var, pass_name } => {
-            commands::insert(&store, &pass_name, echo, multiline, force, template.as_deref(), &var)?;
+        Commands::Insert {
+            echo,
+            multiline,
+            force,
+            template,
+            var,
+            pass_name,
+        } => {
+            commands::insert(
+                &store,
+                &pass_name,
+                echo,
+                multiline,
+                force,
+                template.as_deref(),
+                &var,
+            )?;
         }
         Commands::Ls { subfolder } => {
             commands::ls(&store, subfolder.as_deref())?;
         }
-        Commands::Mv { force, old_path, new_path } => {
+        Commands::Mv {
+            force,
+            old_path,
+            new_path,
+        } => {
             commands::mv_or_cp(&store, &old_path, &new_path, force, true)?;
         }
-        Commands::Rm { recursive, force, pass_name } => {
+        Commands::Rm {
+            recursive,
+            force,
+            pass_name,
+        } => {
             commands::rm(&store, &pass_name, recursive, force)?;
         }
         Commands::Show { clip, pass_name } => {
@@ -131,7 +164,11 @@ fn run() -> Result<()> {
             cli::TemplatesAction::Show { name } => commands::templates_show(&store, &name)?,
         },
         Commands::Version => {
-            println!("rspass {} by {}", env!("CARGO_PKG_VERSION"), env!("CARGO_PKG_AUTHORS"));
+            println!(
+                "rspass {} by {}",
+                env!("CARGO_PKG_VERSION"),
+                env!("CARGO_PKG_AUTHORS")
+            );
             println!("GIT_DESCRIBE: {}", env!("GIT_DESCRIBE"));
             println!("GIT_SHA: {}", env!("GIT_SHA"));
             println!("GIT_BRANCH: {}", env!("GIT_BRANCH"));

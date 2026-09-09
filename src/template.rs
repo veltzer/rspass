@@ -33,10 +33,9 @@ struct GenPasswordFunction;
 impl Function for GenPasswordFunction {
     fn call(&self, args: &HashMap<String, TeraValue>) -> tera::Result<TeraValue> {
         let length = match args.get("length") {
-            Some(v) => v
-                .as_u64()
-                .ok_or_else(|| tera::Error::msg("gen_password: length must be a positive integer"))?
-                as usize,
+            Some(v) => v.as_u64().ok_or_else(|| {
+                tera::Error::msg("gen_password: length must be a positive integer")
+            })? as usize,
             None => 25,
         };
         if length == 0 {
@@ -86,9 +85,16 @@ pub fn list(store: &Store) -> Result<Vec<String>> {
     }
     let mut names = Vec::new();
     for entry in fs::read_dir(&dir).with_context(|| format!("failed to read {}", dir.display()))? {
-        let path = entry.context("failed to read templates directory entry")?.path();
+        let path = entry
+            .context("failed to read templates directory entry")?
+            .path();
         if path.is_file() && path.extension().is_some_and(|e| e == "tera") {
-            names.push(path.file_stem().unwrap_or_default().to_string_lossy().into_owned());
+            names.push(
+                path.file_stem()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .into_owned(),
+            );
         }
     }
     names.sort();
@@ -99,7 +105,10 @@ pub fn list(store: &Store) -> Result<Vec<String>> {
 pub fn source(store: &Store, name: &str) -> Result<String> {
     let path = template_path(store, name)?;
     if !path.is_file() {
-        bail!("no template named {name} in {}", templates_dir(store).display());
+        bail!(
+            "no template named {name} in {}",
+            templates_dir(store).display()
+        );
     }
     fs::read_to_string(&path).with_context(|| format!("failed to read {}", path.display()))
 }
@@ -123,8 +132,8 @@ pub fn render(store: &Store, name: &str, vars: &[String]) -> Result<String> {
             continue;
         }
         let path = dir.join(format!("{other}.tera"));
-        let content =
-            fs::read_to_string(&path).with_context(|| format!("failed to read {}", path.display()))?;
+        let content = fs::read_to_string(&path)
+            .with_context(|| format!("failed to read {}", path.display()))?;
         tera.add_raw_template(&format!("{other}.tera"), &content)
             .with_context(|| format!("failed to parse template {}", path.display()))?;
     }
@@ -163,7 +172,8 @@ mod tests {
 
     #[test]
     fn renders_vars_and_functions() {
-        let (_tmp, store) = store_with_template("{{ gen_password(length=12, symbols=false) }}\nuser: {{ user }}\n");
+        let (_tmp, store) =
+            store_with_template("{{ gen_password(length=12, symbols=false) }}\nuser: {{ user }}\n");
         let out = render(&store, "login", &["user=alice".to_owned()]).unwrap();
         let mut lines = out.lines();
         let password = lines.next().unwrap();

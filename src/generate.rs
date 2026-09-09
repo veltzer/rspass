@@ -23,7 +23,9 @@ pub fn generate_password(length: usize, no_symbols: bool) -> Result<String> {
     let mut password = String::with_capacity(length);
     let mut buf = [0u8; 64];
     while password.len() < length {
-        urandom.read_exact(&mut buf).context("failed to read /dev/urandom")?;
+        urandom
+            .read_exact(&mut buf)
+            .context("failed to read /dev/urandom")?;
         for &b in &buf {
             if (b as usize) < limit {
                 password.push(charset[b as usize % n]);

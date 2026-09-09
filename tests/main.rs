@@ -25,7 +25,16 @@ fn gpg_home() -> Option<&'static Path> {
             .expect("chmod gpg home");
         let status = std::process::Command::new("gpg")
             .env("GNUPGHOME", dir.path())
-            .args(["--batch", "--passphrase", "", "--quick-generate-key", TEST_KEY, "default", "default", "never"])
+            .args([
+                "--batch",
+                "--passphrase",
+                "",
+                "--quick-generate-key",
+                TEST_KEY,
+                "default",
+                "default",
+                "never",
+            ])
             .status()
             .expect("run gpg");
         status.success().then_some(dir)
@@ -60,15 +69,37 @@ fn bare_invocation_shows_subcommands() {
     let assert = Command::cargo_bin("rspass").unwrap().assert().failure();
     let out = String::from_utf8(assert.get_output().stderr.clone()).unwrap();
     for sub in ["init", "insert", "show", "generate", "ls"] {
-        assert!(out.contains(sub), "bare rspass output is missing subcommand {sub}");
+        assert!(
+            out.contains(sub),
+            "bare rspass output is missing subcommand {sub}"
+        );
     }
 }
 
 #[test]
 fn help_lists_all_subcommands() {
-    let assert = Command::cargo_bin("rspass").unwrap().arg("--help").assert().success();
+    let assert = Command::cargo_bin("rspass")
+        .unwrap()
+        .arg("--help")
+        .assert()
+        .success();
     let out = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
-    for sub in ["init", "insert", "show", "generate", "ls", "rm", "mv", "cp", "git", "grep", "find", "edit", "templates", "complete"] {
+    for sub in [
+        "init",
+        "insert",
+        "show",
+        "generate",
+        "ls",
+        "rm",
+        "mv",
+        "cp",
+        "git",
+        "grep",
+        "find",
+        "edit",
+        "templates",
+        "complete",
+    ] {
         assert!(out.contains(sub), "--help is missing subcommand {sub}");
     }
 }
@@ -140,7 +171,9 @@ fn init_insert_show_roundtrip() {
         .arg("ls")
         .assert()
         .success()
-        .stdout(predicate::str::contains("Password Store").and(predicate::str::contains("example")));
+        .stdout(
+            predicate::str::contains("Password Store").and(predicate::str::contains("example")),
+        );
 }
 
 #[test]
@@ -150,13 +183,19 @@ fn generate_rm_and_find() {
         return;
     };
     let store = TempDir::new().unwrap();
-    rspass(store.path(), gpg).args(["init", TEST_KEY]).assert().success();
+    rspass(store.path(), gpg)
+        .args(["init", TEST_KEY])
+        .assert()
+        .success();
 
     rspass(store.path(), gpg)
         .args(["generate", "--no-symbols", "site/login", "32"])
         .assert()
         .success();
-    let assert = rspass(store.path(), gpg).args(["show", "site/login"]).assert().success();
+    let assert = rspass(store.path(), gpg)
+        .args(["show", "site/login"])
+        .assert()
+        .success();
     let pw = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
     assert_eq!(pw.trim_end().len(), 32);
     assert!(pw.trim_end().chars().all(|c| c.is_ascii_alphanumeric()));
@@ -171,7 +210,10 @@ fn generate_rm_and_find() {
         .args(["rm", "--force", "site/login"])
         .assert()
         .success();
-    assert!(!store.path().join("site").exists(), "empty parent dir should be swept");
+    assert!(
+        !store.path().join("site").exists(),
+        "empty parent dir should be swept"
+    );
 }
 
 #[test]
@@ -181,7 +223,10 @@ fn insert_from_tera_template() {
         return;
     };
     let store = TempDir::new().unwrap();
-    rspass(store.path(), gpg).args(["init", TEST_KEY]).assert().success();
+    rspass(store.path(), gpg)
+        .args(["init", TEST_KEY])
+        .assert()
+        .success();
 
     let tpl_dir = store.path().join(".templates");
     fs::create_dir_all(&tpl_dir).unwrap();
@@ -198,11 +243,23 @@ fn insert_from_tera_template() {
         .stdout("login\n");
 
     rspass(store.path(), gpg)
-        .args(["insert", "--template", "login", "--var", "user=alice", "--var", "url=https://example.com", "web/tpl"])
+        .args([
+            "insert",
+            "--template",
+            "login",
+            "--var",
+            "user=alice",
+            "--var",
+            "url=https://example.com",
+            "web/tpl",
+        ])
         .assert()
         .success();
 
-    let assert = rspass(store.path(), gpg).args(["show", "web/tpl"]).assert().success();
+    let assert = rspass(store.path(), gpg)
+        .args(["show", "web/tpl"])
+        .assert()
+        .success();
     let body = String::from_utf8(assert.get_output().stdout.clone()).unwrap();
     let mut lines = body.lines();
     assert_eq!(lines.next().unwrap().len(), 20);
@@ -217,17 +274,34 @@ fn mv_and_cp_entries() {
         return;
     };
     let store = TempDir::new().unwrap();
-    rspass(store.path(), gpg).args(["init", TEST_KEY]).assert().success();
+    rspass(store.path(), gpg)
+        .args(["init", TEST_KEY])
+        .assert()
+        .success();
     rspass(store.path(), gpg)
         .args(["insert", "a/one"])
         .write_stdin("secret-one\n")
         .assert()
         .success();
 
-    rspass(store.path(), gpg).args(["cp", "a/one", "b/copy"]).assert().success();
-    rspass(store.path(), gpg).args(["mv", "a/one", "c/moved"]).assert().success();
+    rspass(store.path(), gpg)
+        .args(["cp", "a/one", "b/copy"])
+        .assert()
+        .success();
+    rspass(store.path(), gpg)
+        .args(["mv", "a/one", "c/moved"])
+        .assert()
+        .success();
 
-    rspass(store.path(), gpg).args(["show", "b/copy"]).assert().success().stdout("secret-one\n");
-    rspass(store.path(), gpg).args(["show", "c/moved"]).assert().success().stdout("secret-one\n");
+    rspass(store.path(), gpg)
+        .args(["show", "b/copy"])
+        .assert()
+        .success()
+        .stdout("secret-one\n");
+    rspass(store.path(), gpg)
+        .args(["show", "c/moved"])
+        .assert()
+        .success()
+        .stdout("secret-one\n");
     assert!(!store.path().join("a").exists());
 }

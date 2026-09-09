@@ -14,10 +14,16 @@ fn clipboard_tool() -> Result<(Vec<&'static str>, Vec<&'static str>)> {
         return Ok((vec!["wl-copy"], vec!["wl-copy", "--clear"]));
     }
     if which::which("xclip").is_ok() {
-        return Ok((vec!["xclip", "-selection", "clipboard"], vec!["xclip", "-selection", "clipboard"]));
+        return Ok((
+            vec!["xclip", "-selection", "clipboard"],
+            vec!["xclip", "-selection", "clipboard"],
+        ));
     }
     if which::which("xsel").is_ok() {
-        return Ok((vec!["xsel", "--clipboard", "--input"], vec!["xsel", "--clipboard", "--clear"]));
+        return Ok((
+            vec!["xsel", "--clipboard", "--input"],
+            vec!["xsel", "--clipboard", "--clear"],
+        ));
     }
     if which::which("pbcopy").is_ok() {
         return Ok((vec!["pbcopy"], vec!["pbcopy"]));

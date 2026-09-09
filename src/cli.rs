@@ -1,5 +1,5 @@
 use clap::{CommandFactory, FromArgMatches, Parser, Subcommand};
-use clap_complete::{generate, Shell};
+use clap_complete::{Shell, generate};
 
 #[derive(Parser)]
 #[command(name = "rspass")]

@@ -10,7 +10,14 @@ use std::process::{Command, Stdio};
 use crate::runtime_flags;
 
 /// Options pass(1) always passes to gpg.
-const GPG_OPTS: &[&str] = &["--quiet", "--yes", "--compress-algo=none", "--no-encrypt-to", "--batch", "--use-agent"];
+const GPG_OPTS: &[&str] = &[
+    "--quiet",
+    "--yes",
+    "--compress-algo=none",
+    "--no-encrypt-to",
+    "--batch",
+    "--use-agent",
+];
 
 /// Locate the gpg binary: gpg2 if present, else gpg.
 fn gpg_binary() -> Result<String> {
@@ -56,7 +63,9 @@ pub fn decrypt(path: &Path) -> Result<String> {
 /// temporary file in the same directory and renames, so a failed gpg run
 /// never leaves a truncated entry behind.
 pub fn encrypt(plaintext: &str, path: &Path, recipients: &[String]) -> Result<()> {
-    let parent = path.parent().context("entry path has no parent directory")?;
+    let parent = path
+        .parent()
+        .context("entry path has no parent directory")?;
     std::fs::create_dir_all(parent)
         .with_context(|| format!("failed to create {}", parent.display()))?;
     let tmp = tempfile::NamedTempFile::new_in(parent).context("failed to create temporary file")?;

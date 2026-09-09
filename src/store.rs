@@ -26,7 +26,8 @@ impl Store {
         } else if let Some(dir) = std::env::var_os("PASSWORD_STORE_DIR") {
             PathBuf::from(dir)
         } else {
-            let home = std::env::var_os("HOME").context("HOME is not set and no store directory was given")?;
+            let home = std::env::var_os("HOME")
+                .context("HOME is not set and no store directory was given")?;
             Path::new(&home).join(".password-store")
         };
         Ok(Self { root })
@@ -52,7 +53,10 @@ impl Store {
     /// sneaky ".gpg" injection). Same check pass(1) does.
     pub fn check_sneaky(name: &str) -> Result<()> {
         let p = Path::new(name);
-        if p.is_absolute() || p.components().any(|c| matches!(c, std::path::Component::ParentDir)) {
+        if p.is_absolute()
+            || p.components()
+                .any(|c| matches!(c, std::path::Component::ParentDir))
+        {
             bail!("sneaky path rejected: {name}");
         }
         Ok(())
@@ -93,9 +97,7 @@ impl Store {
         if root_ids.is_file() {
             return read_gpg_id_file(&root_ids);
         }
-        bail!(
-            "no .gpg-id found for {name} — store not initialized? try \"rspass init <gpg-id>\""
-        )
+        bail!("no .gpg-id found for {name} — store not initialized? try \"rspass init <gpg-id>\"")
     }
 
     /// All entry names (relative, without .gpg suffix) under a subfolder,
@@ -132,8 +134,8 @@ impl Store {
 }
 
 fn read_gpg_id_file(path: &Path) -> Result<Vec<String>> {
-    let content = fs::read_to_string(path)
-        .with_context(|| format!("failed to read {}", path.display()))?;
+    let content =
+        fs::read_to_string(path).with_context(|| format!("failed to read {}", path.display()))?;
     let ids: Vec<String> = content
         .lines()
         .map(str::trim)
@@ -191,7 +193,11 @@ fn render_tree(dir: &Path, prefix: &str, lines: &mut Vec<String>) -> Result<()> 
             let child_prefix = format!("{prefix}{}", if is_last { "    " } else { "│   " });
             render_tree(&path, &child_prefix, lines)?;
         } else if path.extension().is_some_and(|e| e == "gpg") {
-            let name = path.file_stem().unwrap_or_default().to_string_lossy().into_owned();
+            let name = path
+                .file_stem()
+                .unwrap_or_default()
+                .to_string_lossy()
+                .into_owned();
             lines.push(format!("{prefix}{connector}{name}"));
         }
     }
@@ -219,7 +225,9 @@ mod tests {
         fs::create_dir_all(root.join("work/sub")).unwrap();
         fs::write(root.join("work/.gpg-id"), "work-key\nsecond-key\n").unwrap();
 
-        let store = Store { root: root.to_path_buf() };
+        let store = Store {
+            root: root.to_path_buf(),
+        };
         assert_eq!(store.gpg_ids_for("top").unwrap(), vec!["root-key"]);
         assert_eq!(
             store.gpg_ids_for("work/sub/entry").unwrap(),
@@ -239,7 +247,9 @@ mod tests {
         fs::write(root.join(".git/x.gpg"), "").unwrap();
         fs::write(root.join("notes.txt"), "").unwrap();
 
-        let store = Store { root: root.to_path_buf() };
+        let store = Store {
+            root: root.to_path_buf(),
+        };
         assert_eq!(store.list_entries(None).unwrap(), vec!["a", "b/two"]);
     }
 }
