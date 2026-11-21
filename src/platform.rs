@@ -1,7 +1,7 @@
 //! Unix-specific OS operations, isolated behind named wrappers.
 //!
-//! rspass is unix-only (Linux and macOS — the platforms the release matrix
-//! builds). This module keeps `std::os::unix` imports and `libc` calls out
+//! rspass is Linux-only (the platform the release matrix builds). This
+//! module keeps `std::os::unix` imports and `libc` calls out
 //! of the rest of the codebase.
 
 /// Reset SIGPIPE to default behavior so piping to head/less doesn't cause errors.

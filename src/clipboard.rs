@@ -1,5 +1,5 @@
-//! Clipboard integration: wl-copy on Wayland, xclip/xsel on X11, pbcopy on
-//! macOS. The clipboard is cleared after `$PASSWORD_STORE_CLIP_TIME`
+//! Clipboard integration: wl-copy on Wayland, xclip/xsel on X11. The
+//! clipboard is cleared after `$PASSWORD_STORE_CLIP_TIME`
 //! (default 45) seconds by a detached child process, like pass(1).
 
 use anyhow::{Context, Result, bail};
@@ -25,10 +25,7 @@ fn clipboard_tool() -> Result<(Vec<&'static str>, Vec<&'static str>)> {
             vec!["xsel", "--clipboard", "--clear"],
         ));
     }
-    if which::which("pbcopy").is_ok() {
-        return Ok((vec!["pbcopy"], vec!["pbcopy"]));
-    }
-    bail!("no clipboard tool found — install wl-clipboard, xclip, xsel, or use macOS pbcopy")
+    bail!("no clipboard tool found — install wl-clipboard, xclip, or xsel")
 }
 
 fn clip_time() -> u64 {
@@ -65,7 +62,7 @@ pub fn copy(secret: &str) -> Result<u64> {
 
     let seconds = clip_time();
     // Detached clearer: survives rspass exiting. `printf ''` feeds the tools
-    // that clear by receiving empty input (xclip/pbcopy); wl-copy/xsel have
+    // that clear by receiving empty input (xclip); wl-copy/xsel have
     // explicit clear flags and ignore stdin.
     let clear_line = clear_cmd.join(" ");
     Command::new("sh")
