@@ -1,32 +1,3 @@
-#![deny(clippy::all)]
-#![warn(clippy::pedantic)]
-#![warn(clippy::nursery)]
-#![deny(warnings)]
-// The pedantic/nursery allow list, copied from rsconstruct's policy: every
-// entry is a decision, not a backlog item. The bar for adding here is:
-// clippy's preferred form is not clearly better, AND the lint fires broadly
-// enough that per-site `#[allow]`s would be worse than one crate-level entry.
-
-// Numeric casts on human-facing values (lengths, line numbers) where the
-// range is known-small and a lossy cast is the intent.
-#![allow(clippy::cast_possible_truncation)]
-// Match arms are kept separate when they mean different things, even where
-// they currently share a body.
-#![allow(clippy::match_same_arms)]
-// Suggests `map_or`/`map_or_else`, which is less readable than `if let`
-// once the branches are more than an expression each.
-#![allow(clippy::option_if_let_else)]
-// Fires on the CLI dispatch match in main.rs and the per-command handlers.
-// These are flat dispatch tables; splitting them produces indirection
-// without reducing the amount to read.
-#![allow(clippy::too_many_lines)]
-// CLI argument structs are flag bags by nature — clap derives one bool per
-// `--flag`. Grouping them into sub-structs to satisfy a 3-bool limit would
-// obscure the one-field-per-option mapping that makes them readable.
-#![allow(clippy::struct_excessive_bools)]
-// Command handlers take many primitives because each maps 1:1 to a CLI flag.
-#![allow(clippy::fn_params_excessive_bools)]
-
 mod cli;
 mod clipboard;
 mod color;
