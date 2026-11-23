@@ -123,10 +123,7 @@ impl Store {
         if !base.is_dir() {
             bail!("{} is not in the password store", subfolder.unwrap_or(""));
         }
-        let header = match subfolder {
-            Some(s) => s.to_owned(),
-            None => "Password Store".to_owned(),
-        };
+        let header = subfolder.unwrap_or("Password Store").to_owned();
         let mut lines = vec![color::bold_blue(&header).into_owned()];
         render_tree(&base, "", &mut lines)?;
         Ok(lines)

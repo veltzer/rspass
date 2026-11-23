@@ -30,21 +30,10 @@ fn run() -> Result<()> {
     let cli = cli::parse_cli();
 
     // Initialize runtime flags from CLI arguments (once, before any reads).
-    let color_enabled = match cli.color {
-        cli::ColorMode::Always => true,
-        cli::ColorMode::Never => false,
-        cli::ColorMode::Auto => {
-            // Disable if NO_COLOR is set to a non-empty value (per the
-            // no-color.org spec, an empty value does NOT disable color)
-            // or if stdout is not a tty.
-            std::env::var_os("NO_COLOR").is_none_or(|v| v.is_empty())
-                && std::io::IsTerminal::is_terminal(&std::io::stdout())
-        }
-    };
     runtime_flags::init(runtime_flags::RuntimeFlags {
         verbose: cli.verbose,
         quiet: cli.quiet,
-        color_enabled,
+        color_enabled: color_enabled(cli.color),
     });
 
     let store = Store::locate(cli.store.as_deref())?;
@@ -76,9 +65,12 @@ fn run() -> Result<()> {
             pass_name,
             length,
         } => {
-            commands::generate(
-                &store, &pass_name, length, no_symbols, clip, in_place, force,
-            )?;
+            let placement = if in_place {
+                commands::Placement::InPlace
+            } else {
+                commands::Placement::New { force }
+            };
+            commands::generate(&store, &pass_name, length, no_symbols, clip, &placement)?;
         }
         Commands::Git { args } => {
             gitops::passthrough(store.root(), &args)?;
@@ -134,20 +126,36 @@ fn run() -> Result<()> {
             cli::TemplatesAction::List => commands::templates_list(&store)?,
             cli::TemplatesAction::Show { name } => commands::templates_show(&store, &name)?,
         },
-        Commands::Version => {
-            println!(
-                "rspass {} by {}",
-                env!("CARGO_PKG_VERSION"),
-                env!("CARGO_PKG_AUTHORS")
-            );
-            println!("GIT_DESCRIBE: {}", env!("GIT_DESCRIBE"));
-            println!("GIT_SHA: {}", env!("GIT_SHA"));
-            println!("GIT_BRANCH: {}", env!("GIT_BRANCH"));
-            println!("GIT_DIRTY: {}", env!("GIT_DIRTY"));
-            println!("RUSTC_SEMVER: {}", env!("RUSTC_SEMVER"));
-            println!("RUST_EDITION: {}", env!("RUST_EDITION"));
-            println!("BUILD_TIMESTAMP: {}", env!("BUILD_TIMESTAMP"));
-        }
+        Commands::Version => print_version(),
     }
     Ok(())
+}
+
+/// Whether output is colored: `--color` decides, and `auto` disables color
+/// when `NO_COLOR` is set to a non-empty value (per the no-color.org spec, an
+/// empty value does NOT disable color) or when stdout is not a tty.
+fn color_enabled(mode: cli::ColorMode) -> bool {
+    match mode {
+        cli::ColorMode::Always => true,
+        cli::ColorMode::Never => false,
+        cli::ColorMode::Auto => {
+            std::env::var_os("NO_COLOR").is_none_or(|v| v.is_empty())
+                && std::io::IsTerminal::is_terminal(&std::io::stdout())
+        }
+    }
+}
+
+fn print_version() {
+    println!(
+        "rspass {} by {}",
+        env!("CARGO_PKG_VERSION"),
+        env!("CARGO_PKG_AUTHORS")
+    );
+    println!("GIT_DESCRIBE: {}", env!("GIT_DESCRIBE"));
+    println!("GIT_SHA: {}", env!("GIT_SHA"));
+    println!("GIT_BRANCH: {}", env!("GIT_BRANCH"));
+    println!("GIT_DIRTY: {}", env!("GIT_DIRTY"));
+    println!("RUSTC_SEMVER: {}", env!("RUSTC_SEMVER"));
+    println!("RUST_EDITION: {}", env!("RUST_EDITION"));
+    println!("BUILD_TIMESTAMP: {}", env!("BUILD_TIMESTAMP"));
 }

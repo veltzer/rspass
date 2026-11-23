@@ -309,21 +309,29 @@ pub fn edit(store: &Store, pass_name: &str) -> Result<()> {
     )
 }
 
+/// Where a generated password goes: a new entry (replacing an existing one
+/// only with `force`), or the first line of an existing entry, keeping the
+/// rest of it.
+pub enum Placement {
+    New { force: bool },
+    InPlace,
+}
+
 pub fn generate(
     store: &Store,
     pass_name: &str,
     length: usize,
     no_symbols: bool,
     clip: bool,
-    in_place: bool,
-    force: bool,
+    placement: &Placement,
 ) -> Result<()> {
     store.require_initialized()?;
     if length == 0 {
         bail!("password length must be at least 1");
     }
     let entry = store.entry_path(pass_name)?;
-    if !in_place {
+    let in_place = matches!(placement, Placement::InPlace);
+    if let Placement::New { force } = *placement {
         check_overwrite(&entry, pass_name, force)?;
     }
     let password = crate::generate::generate_password(length, no_symbols)?;

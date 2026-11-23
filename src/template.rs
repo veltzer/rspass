@@ -33,9 +33,13 @@ struct GenPasswordFunction;
 impl Function for GenPasswordFunction {
     fn call(&self, args: &HashMap<String, TeraValue>) -> tera::Result<TeraValue> {
         let length = match args.get("length") {
-            Some(v) => v.as_u64().ok_or_else(|| {
-                tera::Error::msg("gen_password: length must be a positive integer")
-            })? as usize,
+            Some(v) => {
+                let length = v.as_u64().ok_or_else(|| {
+                    tera::Error::msg("gen_password: length must be a positive integer")
+                })?;
+                usize::try_from(length)
+                    .map_err(|_| tera::Error::msg("gen_password: length is too large"))?
+            }
             None => 25,
         };
         if length == 0 {
