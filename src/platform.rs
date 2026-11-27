@@ -6,6 +6,9 @@
 
 /// Reset SIGPIPE to default behavior so piping to head/less doesn't cause errors.
 pub fn reset_sigpipe() {
+    // SAFETY: signal(2) with SIG_DFL installs no handler, so there is no
+    // callback to be sound about; it runs first thing in main(), before any
+    // thread exists.
     unsafe {
         libc::signal(libc::SIGPIPE, libc::SIG_DFL);
     }
