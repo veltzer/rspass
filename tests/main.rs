@@ -1,3 +1,6 @@
+// Everything here is test code; clippy.toml lets test code unwrap.
+#![cfg(test)]
+
 //! End-to-end tests driving the real binary. Encryption tests create a
 //! throwaway passphrase-less GPG key in an isolated GNUPGHOME so they never
 //! touch the user's keyring, and skip cleanly when gpg is not installed.

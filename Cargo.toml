@@ -50,6 +50,7 @@ dbg_macro = "warn"
 todo = "warn"
 undocumented_unsafe_blocks = "warn"
 unimplemented = "warn"
+unwrap_used = "warn"
 
 [profile.dev]
 debug = "line-tables-only"
