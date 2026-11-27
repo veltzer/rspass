@@ -125,7 +125,7 @@ pub enum Commands {
         /// Overwrite an existing entry without asking
         #[arg(short, long)]
         force: bool,
-        /// Render a Tera template from <store>/.templates/<NAME>.tera as the
+        /// Render a Tera template from `<store>/.templates/<NAME>.tera` as the
         /// entry body instead of prompting
         #[arg(short, long, value_name = "NAME")]
         template: Option<String>,
@@ -170,7 +170,7 @@ pub enum Commands {
         /// Name of the password to show
         pass_name: String,
     },
-    /// Manage Tera entry templates in <store>/.templates (requires store)
+    /// Manage Tera entry templates in `<store>/.templates` (requires store)
     Templates {
         #[command(subcommand)]
         action: TemplatesAction,
