@@ -32,6 +32,7 @@ predicates = "3"
 # at a fraction of full debug info's link cost, and dependencies get light
 # optimization once (they rarely change) so tests run faster.
 [lints.rust]
+missing_docs = "warn"
 warnings = "deny"
 
 [lints.clippy]

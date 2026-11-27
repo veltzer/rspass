@@ -1,3 +1,5 @@
+//! rspass: Rust based clone of pass(1), the standard unix password manager.
+
 mod cli;
 mod clipboard;
 mod color;
